@@ -82,7 +82,7 @@ struct ApxMutator {
 };
 
 template<class Matrix, class Mutator, class RandGen>
-inline bool updateLocal( LinkLattice<Matrix>& lat, Site const& x, int mu, double beta, Mutator mutate, RandGen& randGen ) {
+inline bool updateLocal( LinkLattice<Matrix>& lat, Site<> const& x, int mu, double beta, Mutator mutate, RandGen& randGen ) {
 	Matrix v = Matrix::zero();
 	for( int nu = 0; nu < 4; ++nu ) {
 		if( mu == nu ) continue;
@@ -105,13 +105,10 @@ inline bool updateLocal( LinkLattice<Matrix>& lat, Site const& x, int mu, double
 
 template<class Matrix, class Mutator, class RandGen>
 inline bool update0( LinkLattice<Matrix>& lat, double beta, Mutator mutate, RandGen& randGen ) {
-	uniform_int<int> dist( 0, lat.size() - 1 );
-	Site x(
-		dist( randGen ),
-		dist( randGen ),
-		dist( randGen ),
-		dist( randGen )
-	);
+	Site<> x;
+	for( int i = 0; i < 4; ++i ) {
+		x[i] = uniform_int<int>( 0, lat.size() - 1 )( randGen );
+	}
 	int mu = uniform_int<int>( 0, 3 )( randGen );
 
 	return updateLocal( lat, x, mu, beta, mutate, randGen );
@@ -119,13 +116,10 @@ inline bool update0( LinkLattice<Matrix>& lat, double beta, Mutator mutate, Rand
 
 template<class Matrix, class Mutator, class RandGen>
 inline void update1( LinkLattice<Matrix>& lat, double beta, Mutator mutate, RandGen& randGen ) {
-	for( int x0 = 0; x0 < lat.size(); ++x0 )
-	for( int x1 = 0; x1 < lat.size(); ++x1 )
-	for( int x2 = 0; x2 < lat.size(); ++x2 )
-	for( int x3 = 0; x3 < lat.size(); ++x3 ) {
-		Site x( x0, x1, x2, x3 );
+	Site<> x = Site<>::zero();
+	while( lat.next( x ) ) {
 		for( int mu = 0; mu < 4; ++mu ) {
-			return updateLocal( lat, x, mu, beta, mutate, randGen );
+			updateLocal( lat, x, mu, beta, mutate, randGen );
 		}
 	}
 }

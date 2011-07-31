@@ -26,7 +26,7 @@ int main() {
 	init( lat, randGen );
 	cout << avgWilsonLoop( lat, 2, 2 ) / 2.0 << endl;
 	while( true ) {
-		//*
+		/*
 		int rate = 0;
 		for( int i = 0; i < lat.nLinks(); ++i ) {
 			rate += update0( lat, beta, ApxMutator( 0.75 ), randGen ) ? 1 : 0;
@@ -34,7 +34,7 @@ int main() {
 		}
 		cout << double( rate ) / lat.nLinks() << endl;
 		/**/
-		//update1( lat, beta, ApxMutator( 0.75 ), randGen );
+		update1( lat, beta, ApxMutator( 0.75 ), randGen );
 		//update1( lat, beta, SphMutator( 0.25 ), randGen );
 		cout << avgWilsonLoop( lat, 2, 2 ) / 2.0 << endl;
 	}

@@ -4,38 +4,44 @@
 #include <cassert>
 
 
+template<int D = 4>
 struct Site {
-	Site() {}
-
-	Site( int x0, int x1, int x2, int x3 ) {
-		_arr[0] = x0;
-		_arr[1] = x1;
-		_arr[2] = x2;
-		_arr[3] = x3;
+	static inline Site zero() {
+		Site<D> x;
+		for( int i = 0; i < D; ++i ) {
+			x[i] = 0;
+		}
+		return x;
 	}
 
+	Site() {}
+
 	int& operator[]( int i ) {
+		assert( 0 <= i && i < D );
 		return _arr[i];
 	}
 
 	int operator[]( int i ) const {
+		assert( 0 <= i && i < D );
 		return _arr[i];
 	}
 
 	private:
-		int _arr[4];
+		int _arr[D];
 };
 
-inline Site operator+( Site const& x, int mu ) {
-	assert( 0 <= mu && mu < 4 );
-	Site z = x;
+template<int D>
+inline Site<D> operator+( Site<D> const& x, int mu ) {
+	assert( 0 <= mu && mu < D );
+	Site<D> z = x;
 	z[mu] += 1;
 	return z;
 }
 
-inline Site operator-( Site const& x, int mu ) {
-	assert( 0 <= mu && mu < 4 );
-	Site z = x;
+template<int D>
+inline Site<D> operator-( Site<D> const& x, int mu ) {
+	assert( 0 <= mu && mu < D );
+	Site<D> z = x;
 	z[mu] -= 1;
 	return z;
 }
@@ -53,26 +59,36 @@ inline int periodic( int x, int N ) {
 	}
 }
 
-template<class T>
+template<int n>
+inline int constPow( int x ) {
+	return x * constPow<n - 1>( x );
+}
+
+template<>
+inline int constPow<0>( int x ) {
+	return 1;
+}
+
+template<class T, int D = 4>
 struct LinkLattice {
 	LinkLattice( int n ):
 		_size( n ),
-		_array( n * n * n * n * 4 )
+		_array( constPow<D>( n ) * D )
 	{}
 
-	T& operator()( Site const& x, int mu ) {
-		assert( 0 <= mu && mu < 4 );
+	T& operator()( Site<D> const& x, int mu ) {
+		assert( 0 <= mu && mu < D );
 		int idx = 0;
-		for( int i = 0; i < 4; ++i ) {
+		for( int i = 0; i < D; ++i ) {
 			idx = idx * _size + periodic( x[i], _size );
 		}
-		return _array[idx * 4 + mu];
+		return _array[idx * D + mu];
 	}
 
 	T& operator()( int i, int mu ) {
-		assert( 0 <= mu && mu < 4 );
+		assert( 0 <= mu && mu < D );
 		assert( 0 <= i && i < nSites() );
-		return _array[i * 4 + mu];
+		return _array[i * D + mu];
 	}
 
 	T& operator()( int i ) {
@@ -81,15 +97,25 @@ struct LinkLattice {
 	}
 
 	int nSites() const {
-		return _size * _size * _size * _size;
+		return constPow<D>( _size );
 	}
 
 	int nLinks() const {
-		return nSites() * 4;
+		return nSites() * D;
 	}
 
 	int size() const {
 		return _size;
+	}
+
+	bool next( Site<D>& x ) {
+		for( int i = 0; i < D; ++i ) {
+			if( ++x[i] < _size ) {
+				return true;
+			}
+			x[i] = 0;
+		}
+		return false;
 	}
 
 	private:
