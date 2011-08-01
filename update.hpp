@@ -32,6 +32,14 @@ inline MatrixSU2<double> randSU2( double eps, RandGen& randGen ) {
 	double th2 = uniform_real_fast<double>( 0.0, M_PI * 2.0 )( randGen );
 
 	/*
+	return MatrixSU2<double>(
+		cos( th0 ),
+		sin( th0 ) * cos( th1 ),
+		sin( th0 ) * sin( th1 ) * cos( th2 ),
+		sin( th0 ) * sin( th1 ) * sin( th2 )
+	);
+	*/
+
 	double c0 = cos( th0 );
 	double s0 = sqrt( 1 - c0 * c0 );
 	double c1 = cos( th1 );
@@ -42,13 +50,6 @@ inline MatrixSU2<double> randSU2( double eps, RandGen& randGen ) {
 		s0 * c1,
 		s0s1 * cos( th2 ),
 		s0s1 * sin( th2 )
-	);
-	*/
-	return MatrixSU2<double>(
-		cos( th0 ),
-		sin( th0 ) * cos( th1 ),
-		sin( th0 ) * sin( th1 ) * cos( th2 ),
-		sin( th0 ) * sin( th1 ) * sin( th2 )
 	);
 }
 
@@ -81,17 +82,17 @@ struct ApxMutator {
 		double const _eps;
 };
 
-template<class Matrix, class Mutator, class RandGen>
-inline bool updateLocal( LinkLattice<Matrix>& lat, Site<> const& x, int mu, double beta, Mutator mutate, RandGen& randGen ) {
-	Matrix v = Matrix::zero();
-	for( int nu = 0; nu < 4; ++nu ) {
+template<class Lattice, class Mutator, class RandGen>
+inline bool updateLocal( Lattice& lat, Site<Lattice::ndim> const& x, int mu, double beta, Mutator mutate, RandGen& randGen ) {
+	typename Lattice::Elem v = Lattice::Elem::zero();
+	for( int nu = 0; nu < Lattice::ndim; ++nu ) {
 		if( mu == nu ) continue;
 		v = v + lat( x + mu, nu ) * inv( lat( x, nu ) * lat( x + nu, mu ) );
 		v = v + inv( lat( x - nu, mu ) * lat( x + mu - nu, nu ) ) * lat( x - nu, nu );
 	}
 
-	Matrix u0 = lat( x, mu );
-	Matrix u1 = mutate( u0, randGen );
+	typename Lattice::Elem u0 = lat( x, mu );
+	typename Lattice::Elem u1 = mutate( u0, randGen );
 	double dE = tr( (u1 - u0) * v );
 	double p = uniform_real_fast<double>( 0.0, 1.0 )( randGen );
 	if( p <= exp( beta * dE ) ) {
@@ -103,23 +104,28 @@ inline bool updateLocal( LinkLattice<Matrix>& lat, Site<> const& x, int mu, doub
 	}
 }
 
-template<class Matrix, class Mutator, class RandGen>
-inline bool update0( LinkLattice<Matrix>& lat, double beta, Mutator mutate, RandGen& randGen ) {
-	Site<> x;
-	for( int i = 0; i < 4; ++i ) {
+template<class Lattice, class Mutator, class RandGen>
+inline bool update0( Lattice& lat, double beta, Mutator mutate, RandGen& randGen ) {
+	Site<Lattice::ndim> x;
+	for( int i = 0; i < Lattice::ndim; ++i ) {
 		x[i] = uniform_int<int>( 0, lat.size() - 1 )( randGen );
 	}
-	int mu = uniform_int<int>( 0, 3 )( randGen );
+	int mu = uniform_int<int>( 0, Lattice::ndim - 1 )( randGen );
 
 	return updateLocal( lat, x, mu, beta, mutate, randGen );
 }
 
-template<class Matrix, class Mutator, class RandGen>
-inline void update1( LinkLattice<Matrix>& lat, double beta, Mutator mutate, RandGen& randGen ) {
-	Site<> x = Site<>::zero();
+template<class Lattice, class Mutator, class RandGen>
+inline double update1( Lattice& lat, double beta, Mutator mutate, RandGen& randGen ) {
+	int nAcc = 0;
+	Site<Lattice::ndim> x;
+	x.assign( 0 );
 	while( lat.next( x ) ) {
-		for( int mu = 0; mu < 4; ++mu ) {
-			updateLocal( lat, x, mu, beta, mutate, randGen );
+		for( int mu = 0; mu < Lattice::ndim; ++mu ) {
+			if( updateLocal( lat, x, mu, beta, mutate, randGen ) ) {
+				++nAcc;
+			}
 		}
 	}
+	return double( nAcc ) / lat.nLinks();
 }

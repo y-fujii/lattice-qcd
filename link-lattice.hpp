@@ -1,33 +1,12 @@
 #pragma once
 
+#include <tr1/array>
 #include <vector>
 #include <cassert>
 
 
 template<int D = 4>
-struct Site {
-	static inline Site zero() {
-		Site<D> x;
-		for( int i = 0; i < D; ++i ) {
-			x[i] = 0;
-		}
-		return x;
-	}
-
-	Site() {}
-
-	int& operator[]( int i ) {
-		assert( 0 <= i && i < D );
-		return _arr[i];
-	}
-
-	int operator[]( int i ) const {
-		assert( 0 <= i && i < D );
-		return _arr[i];
-	}
-
-	private:
-		int _arr[D];
+struct Site: std::tr1::array<int, D> {
 };
 
 template<int D>
@@ -65,12 +44,15 @@ inline int constPow( int x ) {
 }
 
 template<>
-inline int constPow<0>( int x ) {
+inline int constPow<0>( int ) {
 	return 1;
 }
 
 template<class T, int D = 4>
 struct LinkLattice {
+	typedef T Elem;
+	static int const ndim = D;
+
 	LinkLattice( int n ):
 		_size( n ),
 		_array( constPow<D>( n ) * D )
@@ -108,7 +90,7 @@ struct LinkLattice {
 		return _size;
 	}
 
-	bool next( Site<D>& x ) {
+	bool next( Site<D>& x ) const {
 		for( int i = 0; i < D; ++i ) {
 			if( ++x[i] < _size ) {
 				return true;

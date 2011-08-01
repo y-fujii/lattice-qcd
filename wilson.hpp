@@ -4,18 +4,18 @@
 #include "link-lattice.hpp"
 
 
-template<class Matrix>
-inline double plaquette( LinkLattice<Matrix>& lat, Site<> const& x, int mu, int nu ) {
+template<class Lattice>
+inline double plaquette( Lattice& lat, Site<Lattice::ndim> const& x, int mu, int nu ) {
 	return tr(
 		   ( lat( x, mu ) * lat( x + mu, nu ) ) *
 		inv( lat( x, nu ) * lat( x + nu, mu ) )
 	);
 }
 
-template<class Matrix>
-inline double wilsonLoop( LinkLattice<Matrix>& lat, Site<> const& x, int mu, int nu, int w, int h ) {
-	Site<> y = x;
-	Matrix u = Matrix::one();
+template<class Lattice>
+inline double wilsonLoop( Lattice& lat, Site<Lattice::ndim> const& x, int mu, int nu, int w, int h ) {
+	Site<Lattice::ndim> y = x;
+	typename Lattice::Elem u = Lattice::Elem::one();
 	for( int i = 0; i < w; ++i ) {
 		u = u * lat( y, mu );
 		y = y + mu;
@@ -25,8 +25,8 @@ inline double wilsonLoop( LinkLattice<Matrix>& lat, Site<> const& x, int mu, int
 		y = y + nu;
 	}
 
-	Site<> z = x;
-	Matrix v = Matrix::one();
+	Site<Lattice::ndim> z = x;
+	typename Lattice::Elem v = Lattice::Elem::one();
 	for( int i = 0; i < h; ++i ) {
 		v = v * lat( z, nu );
 		z = z + nu;
@@ -39,17 +39,19 @@ inline double wilsonLoop( LinkLattice<Matrix>& lat, Site<> const& x, int mu, int
 	return tr( u * inv( v ) );
 }
 
-template<class Matrix>
-double avgWilsonLoop( LinkLattice<Matrix>& lat, int w, int h ) {
+template<class Lattice>
+double avgWilsonLoop( Lattice& lat, int w, int h ) {
 	double s = 0.0;
-	Site<> x = Site<>::zero();
+	Site<Lattice::ndim> x;
+	x.assign( 0 );
 	while( lat.next( x ) ) {
-		for( int mu = 0; mu < 4; ++mu ) {
+		for( int mu = 0; mu < Lattice::ndim; ++mu ) {
 			for( int nu = 0; nu < mu; ++nu ) { 
 				s += wilsonLoop( lat, x, mu, nu, w, h );
 			}
 		}
 	}
 
-	return s / (lat.nSites() * 6);
+	int const n = Lattice::ndim * (Lattice::ndim - 1) / 2;
+	return s / (lat.nSites() * n);
 }
