@@ -50,6 +50,7 @@ inline int constPow<0>( int ) {
 
 template<class T, int D = 4>
 struct LinkLattice {
+	typedef typename std::vector<T>::iterator iterator;
 	typedef T Elem;
 	static int const ndim = D;
 
@@ -98,6 +99,14 @@ struct LinkLattice {
 			x[i] = 0;
 		}
 		return false;
+	}
+
+	iterator begin() {
+		return _array.begin();
+	}
+
+	iterator end() {
+		return _array.end();
 	}
 
 	private:
