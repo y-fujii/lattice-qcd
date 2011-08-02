@@ -46,11 +46,6 @@ inline MatrixSU2<T> inv( MatrixSU2<T> const& x ) {
 }
 
 template<class T>
-inline MatrixSU2<T> const& operator+( MatrixSU2<T> const& x ) {
-	return x;
-}
-
-template<class T>
 inline MatrixSU2<T> operator-( MatrixSU2<T> const& x ) {
 	return MatrixSU2<T>( -x.a0, -x.a1, -x.a2, -x.a3 );
 }

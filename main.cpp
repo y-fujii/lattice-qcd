@@ -15,31 +15,40 @@ int main() {
 
 	double const beta = 3.0 / 2.0;
 	LinkLattice<MatrixSU2<double>, 4> lat( 8 );
-	mt19937 randGen;
+	tr1::mt19937 randGen;
 
-	generate( lat.begin(), lat.end(), bind( randSU2<mt19937>, 1.0, randGen ) );
-	//generate( lat.begin(), lat.end(), MatrixSU2<double>::one );
+	//generate( lat.begin(), lat.end(), [&]() -> { return randSU2( 1.0, randGen ) } );
+	generate( lat.begin(), lat.end(), MatrixSU2<double>::one );
 
 	for( int i = 0; i < 1024; ++i ) {
-		update1( lat, beta, SphMutator( 0.25 ), randGen );
+		update( lat, GaugeAction( beta ), SphMutator( 0.25 ), randGen );
 	}
 
-	double w[4][4];
-	fill( &w[0][0], &w[0][0] + 4 * 4, 0.0 );
-	for( int i = 0; i< 1024 / 16; ++i ) {
-		/*
-		for( int j = 0; j < lat.nLinks() * 16; ++j ) {
-			update0( lat, beta, SphMutator( 0.25 ), randGen );
-		}
-		*/
+	int    wcnt[16];
+	double wval[16];
+	double wvar[16];
+	fill( wcnt, wcnt + 16, 0 );
+	fill( wval, wval + 16, 0.0 );
+	fill( wvar, wvar + 16, 0.0 );
+	for( int i = 0; i< 512 / 16; ++i ) {
 		for( int j = 0; j < 16; ++j ) {
-			update1( lat, beta, SphMutator( 0.25 ), randGen );
+			update( lat, GaugeAction( beta ), SphMutator( 0.25 ), randGen );
 		}
-		for( int j = 1; j < 4; ++j )
-		for( int k = 1; k <= j; ++k ) {
-			w[j-1][k-1] += avgWilsonLoop( lat, j, k );
-			w[j-1][k-1] += avgWilsonLoop( lat, k, j );
-			cout << j * k << " " << log( w[j-1][k-1] / ((i + 1) * 4) ) << "\n";
+		for( int j = 1; j < 4 + 1; ++j ) {
+			for( int k = 1; k < 4 + 1; ++k ) {
+				double w = avgWilsonLoop( lat, j, k );
+				wval[j * k - 1] += w;
+				wvar[j * k - 1] += w * w;
+				wcnt[j * k - 1] += 1;
+			}
+		}
+		for( int j = 0; j < 16; ++j ) {
+			if( wcnt[j] > 0 ) {
+				double w  = wval[j] / wcnt[j];
+				double dw = sqrt( wvar[j] / wcnt[j] - w * w );
+				cout << j + 1 << " " << log( w + dw ) << "\n";
+				cout << j + 1 << " " << log( w - dw ) << "\n";
+			}
 		}
 		cout << endl;
 	}

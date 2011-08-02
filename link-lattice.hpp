@@ -25,19 +25,6 @@ inline Site<D> operator-( Site<D> const& x, int mu ) {
 	return z;
 }
 
-inline int periodic( int x, int N ) {
-	assert( 0 <= x + N && x - N < N );
-	if( x < 0 ) {
-		return x + N;
-	}
-	else if( x < N ) {
-		return x;
-	}
-	else {
-		return x - N;
-	}
-}
-
 template<int n>
 inline int constPow( int x ) {
 	return x * constPow<n - 1>( x );
@@ -63,7 +50,14 @@ struct LinkLattice {
 		assert( 0 <= mu && mu < D );
 		int idx = 0;
 		for( int i = 0; i < D; ++i ) {
-			idx = idx * _size + periodic( x[i], _size );
+			assert( 0 <= x[i] + _size && x[i] - _size < _size );
+			idx = idx * _size + x[i];
+			if( __builtin_expect( x[i] < 0, false ) ) {
+				idx += _size;
+			}
+			else if( __builtin_expect( _size <= x[i], false ) ) {
+				idx -= _size;
+			}
 		}
 		return _array[idx * D + mu];
 	}
@@ -87,13 +81,13 @@ struct LinkLattice {
 		return nSites() * D;
 	}
 
-	int size() const {
+	int len() const {
 		return _size;
 	}
 
 	bool next( Site<D>& x ) const {
-		for( int i = 0; i < D; ++i ) {
-			if( ++x[i] < _size ) {
+		for( int i = D - 1; i >= 0; --i ) {
+			if( __builtin_expect( ++x[i] < _size, true ) ) {
 				return true;
 			}
 			x[i] = 0;

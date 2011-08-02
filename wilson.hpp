@@ -5,14 +5,6 @@
 
 
 template<class Lattice>
-inline double plaquette( Lattice& lat, Site<Lattice::ndim> const& x, int mu, int nu ) {
-	return tr(
-		   ( lat( x, mu ) * lat( x + mu, nu ) ) *
-		inv( lat( x, nu ) * lat( x + nu, mu ) )
-	);
-}
-
-template<class Lattice>
 inline double wilsonLoop( Lattice& lat, Site<Lattice::ndim> const& x, int mu, int nu, int w, int h ) {
 	Site<Lattice::ndim> y = x;
 	typename Lattice::Elem u = Lattice::Elem::one();
