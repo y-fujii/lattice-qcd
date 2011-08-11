@@ -3,6 +3,7 @@
 #include <tr1/array>
 #include <vector>
 #include <cassert>
+#include "misc.hpp"
 
 
 template<int D = 4>
@@ -23,16 +24,6 @@ inline Site<D> operator-( Site<D> const& x, int mu ) {
 	Site<D> z = x;
 	z[mu] -= 1;
 	return z;
-}
-
-template<int n>
-inline int constPow( int x ) {
-	return x * constPow<n - 1>( x );
-}
-
-template<>
-inline int constPow<0>( int ) {
-	return 1;
 }
 
 template<class T, int D = 4>

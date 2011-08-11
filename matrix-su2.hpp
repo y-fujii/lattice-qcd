@@ -1,6 +1,7 @@
 #pragma once
 
 #include <limits>
+#include "misc.hpp"
 
 
 template<class T>
@@ -36,8 +37,8 @@ inline T det( MatrixSU2<T> const& x ) {
 }
 
 template<class T>
-inline T tr( MatrixSU2<T> const& x ) {
-	return x.a0 + x.a0;
+inline T ntrace( MatrixSU2<T> const& x ) {
+	return x.a0;
 }
 
 template<class T>
@@ -53,6 +54,14 @@ inline MatrixSU2<T> operator-( MatrixSU2<T> const& x ) {
 template<class T>
 inline MatrixSU2<T> operator+( MatrixSU2<T> const& x, MatrixSU2<T> const& y ) {
 	return MatrixSU2<T>( x.a0 + y.a0, x.a1 + y.a1, x.a2 + y.a2, x.a3 + y.a3 );
+}
+
+template<class T>
+inline MatrixSU2<T>& operator+=( MatrixSU2<T>& x, MatrixSU2<T> const& y ) {
+	x.a0 += y.a0;
+	x.a1 += y.a1;
+	x.a2 += y.a2;
+	x.a3 += y.a3;
 }
 
 template<class T>
@@ -73,4 +82,14 @@ inline MatrixSU2<T> operator*( MatrixSU2<T> const& x, MatrixSU2<T> const& y ) {
 		x.a2 * y.a0 + x.a0 * y.a2 - x.a3 * y.a1 + x.a1 * y.a3,
 		x.a3 * y.a0 + x.a0 * y.a3 - x.a1 * y.a2 + x.a2 * y.a1
 	);
+}
+
+template<class T>
+inline MatrixSU2<T> zero( MatrixSU2<T> const& ) {
+	return MatrixSU2<T>( 0.0, 0.0, 0.0, 0.0 );
+}
+
+template<class T>
+inline MatrixSU2<T> one( MatrixSU2<T> const& ) {
+	return MatrixSU2<T>( 1.0, 0.0, 0.0, 0.0 );
 }

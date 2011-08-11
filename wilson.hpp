@@ -1,13 +1,17 @@
 #pragma once
 
-#include "matrix-su2.hpp"
-#include "link-lattice.hpp"
+#include <complex>
+#include <tr1/tuple>
+#include "misc.hpp"
+
+using namespace std;
+using namespace tr1;
 
 
 template<class Lattice>
 inline double wilsonLoop( Lattice& lat, Site<Lattice::ndim> const& x, int mu, int nu, int w, int h ) {
 	Site<Lattice::ndim> y = x;
-	typename Lattice::Elem u = Lattice::Elem::one();
+	typename Lattice::Elem u = one( typename Lattice::Elem() );
 	for( int i = 0; i < w; ++i ) {
 		u = u * lat( y, mu );
 		y = y + mu;
@@ -18,7 +22,7 @@ inline double wilsonLoop( Lattice& lat, Site<Lattice::ndim> const& x, int mu, in
 	}
 
 	Site<Lattice::ndim> z = x;
-	typename Lattice::Elem v = Lattice::Elem::one();
+	typename Lattice::Elem v = one( typename Lattice::Elem() );
 	for( int i = 0; i < h; ++i ) {
 		v = v * lat( z, nu );
 		z = z + nu;
@@ -28,22 +32,25 @@ inline double wilsonLoop( Lattice& lat, Site<Lattice::ndim> const& x, int mu, in
 		z = z + mu;
 	}
 			
-	return tr( u * inv( v ) );
+	return real( ntrace( u * inv( v ) ) );
 }
 
 template<class Lattice>
-double avgWilsonLoop( Lattice& lat, int w, int h ) {
-	double s = 0.0;
+tuple<double, double> avgWilsonLoop( Lattice& lat, int w, int h ) {
+	double s1 = 0.0;
+	double s2 = 0.0;
 	Site<Lattice::ndim> x;
 	x.assign( 0 );
-	while( lat.next( x ) ) {
+	do {
 		for( int mu = 0; mu < Lattice::ndim; ++mu ) {
 			for( int nu = 0; nu < mu; ++nu ) { 
-				s += wilsonLoop( lat, x, mu, nu, w, h );
+				double v = wilsonLoop( lat, x, mu, nu, w, h );
+				s1 += v;
+				s2 += v * v;
 			}
 		}
-	}
+	} while( lat.next( x ) );
 
-	int const n = Lattice::ndim * (Lattice::ndim - 1) / 2;
-	return s / (lat.nSites() * n);
+	int const n = lat.nSites() * (Lattice::ndim * (Lattice::ndim - 1) / 2);
+	return make_tuple( s1 / n, s2 / n );
 }
