@@ -8,6 +8,19 @@ using namespace std;
 using namespace tr1;
 
 
+struct U1Mutator {
+	U1Mutator( double e ): _eps( e ) {}
+
+	template<class RandGen>
+	complex<double> operator()( complex<double> const& u, RandGen& rng ) {
+		double im = uniform_real_ex<double>( -_eps, +_eps )( rng );
+		return complex<double>( cos( im ), sin( im ) ) * u;
+	}
+
+	private:
+		double const _eps;
+};
+
 template<class RandGen>
 inline MatrixSU2<double> randSU2( double eps, RandGen& rng ) {
 	double x, y, z, r2;
@@ -66,13 +79,10 @@ inline Matrix randSUn( double eps, RandGen& rng ) {
 
 	MatrixSU2<double> su2 = randSU2( eps, rng );
 
-	double th = uniform_real_ex<double>( -M_PI * eps, +M_PI * eps )( rng );
-	complex<double> ph = complex<double>( cos( th ), sin( th ) );
-
-	m( i, i ) = ph * complex<double>( +su2.a0, +su2.a3 );
-	m( i, j ) = ph * complex<double>( -su2.a2, +su2.a1 );
-	m( j, i ) = ph * complex<double>( +su2.a2, +su2.a1 );
-	m( j, j ) = ph * complex<double>( +su2.a0, -su2.a3 );
+	m( i, i ) = complex<double>( +su2.a0, +su2.a3 );
+	m( i, j ) = complex<double>( -su2.a2, +su2.a1 );
+	m( j, i ) = complex<double>( +su2.a2, +su2.a1 );
+	m( j, j ) = complex<double>( +su2.a0, -su2.a3 );
 
 	return m;
 }

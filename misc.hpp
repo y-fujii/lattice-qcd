@@ -62,3 +62,19 @@ template<>
 inline int constPow<0>( int ) {
 	return 1;
 }
+
+inline std::complex<double> zero( std::complex<double> const& ) {
+	return 0.0;
+}
+
+inline std::complex<double> one( std::complex<double> const& ) {
+	return 1.0;
+}
+
+inline std::complex<double> inv( std::complex<double> const& z ) {
+	return 1.0 / z;
+}
+
+inline std::complex<double> ntrace( std::complex<double> const& z ) {
+	return z;
+}

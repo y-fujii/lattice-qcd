@@ -22,19 +22,21 @@ using namespace std;
 int main() {
 	feenableexcept( FE_DIVBYZERO | FE_INVALID | FE_OVERFLOW | FE_UNDERFLOW );
 
-	int const L = 8;
-	double const beta = 5.5;
-	LinkLattice<Matrix<complex<double>, 3, 3>, 4> lat( L * 2 );
+	int const L = 6;
+	double const beta = 10.0;
+	//LinkLattice<Matrix<complex<double>, 3, 3>, 4> lat( L * 2 );
+	LinkLattice<complex<double>, 4> lat( L * 2 );
 	tr1::mt19937 rng;
 
 	//generate( lat.begin(), lat.end(), bind( randSU2<mt19937>, 1.0, rng ) );
 	//generate( lat.begin(), lat.end(), MatrixSU2<double>::one );
-	fill( lat.begin(), lat.end(), one( lat( 0 ) ) );
+	//fill( lat.begin(), lat.end(), one( lat( 0 ) ) );
+	fill( lat.begin(), lat.end(), 1.0 );
 
-	for( int i = 0; i < 32; ++i ) {
+	for( int i = 0; i < 1; ++i ) {
 		double p = 0.0;
 		for( int j = 0; j < 16; ++j ) {
-			p += update( lat, GaugeAction( beta ), SUnMutator( 0.3 ), rng );
+			p += update( lat, GaugeAction( beta ), U1Mutator( M_PI / 4.0 ), rng );
 		}
 		cerr
 			<< get<0>( avgWilsonLoop( lat, 1, 1 ) ) << " "
@@ -47,9 +49,9 @@ int main() {
 	fill( &wcnt[0][0], &wcnt[L][L], 0 );
 	fill( &wval[0][0], &wval[L][L], 0.0 );
 	fill( &wvar[0][0], &wvar[L][L], 0.0 );
-	for( int i = 0; i < 1024; ++i ) {
-		for( int j = 0; j < 64; ++j ) {
-			update( lat, GaugeAction( beta ), SUnMutator( 0.3 ), rng );
+	for( int i = 0; i < 1 * 4; ++i ) {
+		for( int j = 0; j < 32; ++j ) {
+			update( lat, GaugeAction( beta ), U1Mutator( M_PI / 4.0 ), rng );
 		}
 		for( int j = 1; j <= L; ++j ) {
 			for( int k = 1; k < j; ++k ) {

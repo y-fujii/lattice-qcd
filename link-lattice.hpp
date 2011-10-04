@@ -42,6 +42,7 @@ struct LinkLattice {
 		int idx = 0;
 		for( int i = 0; i < D; ++i ) {
 			assert( 0 <= x[i] + _size && x[i] - _size < _size );
+			// idx = idx * _size + (x[i] + _size) % _size;
 			idx = idx * _size + x[i];
 			if( __builtin_expect( x[i] < 0, false ) ) {
 				idx += _size;
